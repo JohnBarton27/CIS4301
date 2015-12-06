@@ -33,21 +33,39 @@ public class Driver
     static Statement sqlStatement  = null;
     static ResultSet myResultSet  = null;
     
-    final static int SHOP_USER_IDX = 0;
-    final static int ORDERS_IDX = 1;
-    final static int ORDER1_IDX = 2;
-    final static int CONTAINS_IDX = 3;
-    final static int PRODUCT_IDX = 4;
-    final static int LOCATION_IDX = 5;
-    final static int SHELF_IDX = 6;
-    final static int SUPPLYS_IDX = 7;
-    final static int SUPPLIER_IDX = 8;
-    final static int INSIDE_IDX = 9;
-    final static int PARENT_IDX = 10;
-    final static int CATEGORY_IDX = 11;
-    final static int AVAILABLE_IDX = 12;
+    //Indexes
+    final static int SHOP_USER_IDX    = 0;
+    final static int ORDERS_IDX       = 1;
+    final static int ORDER1_IDX       = 2;
+    final static int CONTAINS_IDX     = 3;
+    final static int PRODUCT_IDX      = 4;
+    final static int LOCATION_IDX     = 5;
+    final static int SHELF_IDX        = 6;
+    final static int SUPPLYS_IDX      = 7;
+    final static int SUPPLIER_IDX     = 8;
+    final static int INSIDE_IDX       = 9;
+    final static int PARENT_IDX       = 10;
+    final static int CATEGORY_IDX     = 11;
+    final static int AVAILABLE_IDX    = 12;
     final static int AVAILABLECAT_IDX = 13;
-    final static int DISCOUNT_IDX = 14;
+    final static int DISCOUNT_IDX     = 14;
+    
+    //Initial IDs
+    final static int SHOP_USER_INIT    = 100000;
+    final static int ORDERS_INIT       = 150000;
+    final static int ORDER1_INIT       = 200000;
+    final static int CONTAINS_INIT     = 250000;
+    final static int PRODUCT_INIT      = 300000;
+    final static int LOCATION_INIT     = 350000;
+    final static int SHELF_INIT        = 400000;
+    final static int SUPPLYS_INIT      = 450000;
+    final static int SUPPLIER_INIT     = 500000;
+    final static int INSIDE_INIT       = 530000;
+    final static int PARENT_INIT       = 560000;
+    final static int CATEGORY_INIT     = 600000;
+    final static int AVAILABLE_INIT    = 630000;
+    final static int AVAILABLECAT_INIT = 660000;
+    final static int DISCOUNT_INIT     = 700000;
     
 	static int[] lastIds = new int[15];
 	
@@ -382,7 +400,7 @@ public class Driver
 		
 		int id;
 		if (lastIds[SHOP_USER_IDX] == 0) {
-			id = 100000;
+			id = SHOP_USER_INIT;
 		} else {
 			id = lastIds[SHOP_USER_IDX] + 1;
 		}
@@ -556,7 +574,7 @@ public class Driver
 		
 		int id;
 		if (lastIds[SHOP_USER_IDX] == 0) {
-			id = 100000;
+			id = SHOP_USER_INIT;
 		} else {
 			id = lastIds[SHOP_USER_IDX] + 1;
 		}
@@ -674,7 +692,7 @@ public class Driver
 		
 		int id;
 		if (lastIds[SHELF_IDX] == 0) {
-			id = 400000;
+			id = SHELF_INIT;
 		} else {
 			id = lastIds[SHELF_IDX] + 1;
 		}
@@ -763,7 +781,7 @@ public class Driver
 				
 		int id;
 		if (lastIds[SUPPLIER_IDX] == 0) {
-			id = 500000;
+			id = SUPPLIER_INIT;
 		} else {
 			id = lastIds[SUPPLIER_IDX] + 1;
 		}
