@@ -297,9 +297,9 @@ public class Driver
 			case 3:
 				modifyUsers();
 				break;
-//			case 4: 
-//				modifyProducts();
-//				break;
+			case 4: 
+				modifyProducts();
+				break;
 //			case 5:
 //				modifyOrders();
 //				break;
@@ -314,7 +314,10 @@ public class Driver
 		}
 	}
 	
-	public static void modifyUsers() {
+	/////////
+	//USERS//
+	/////////
+	private static void modifyUsers() {
 		System.out.println("Add [A], Update [U], or Delete [D] a User?");
 		String sel = sc.next();
 		
@@ -543,6 +546,36 @@ public class Driver
 		} else {
 			loggedInCust();
 		}
+	}
+	
+	////////////
+	//PRODUCTS//
+	////////////
+	private static void modifyProducts() {
+		System.out.println("Add [A], Update [U], or Delete [D] a User?");
+		String sel = sc.next();
+		
+		if (sel.equals("A")) {
+			addNewProduct();
+		} else if (sel.equals("U")) {
+			updateProduct();
+		} else if (sel.equals("D")) {
+			deleteProduct();
+		}
+		
+		loggedInStaff();
+	}
+	
+	private static void addNewProduct() {
+		
+	}
+	
+	private static void updateProduct() {
+		
+	}
+	
+	private static void deleteProduct() {
+		
 	}
 	
 }
