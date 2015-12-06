@@ -332,9 +332,9 @@ public class Driver
 				break;
 			case 2:
 				modifyShelves();
-//			case 3:
-//				modifySuppliers();
-//				break;
+			case 3:
+				modifySuppliers();
+				break;
 		}
 		
 		loggedInStaff();
@@ -601,7 +601,13 @@ public class Driver
 		
 		System.out.print("Product description: ");
 		String description = sc.next();
-				
+		
+		System.out.println("Product location (ID): ");
+		printAllShelfs();
+		int shelfId = sc.nextInt();
+		
+		
+		
 		loggedInStaff();
 	}
 	
@@ -725,6 +731,86 @@ public class Driver
 				String name = allShelfs.getString(2);
 				int quantity = allShelfs.getInt(3);
 				System.out.println(id + ": " + name + " - " + quantity);
+			}
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return;
+	}
+	
+	/////////////
+	//SUPPLIERS//
+	/////////////
+	private static void modifySuppliers() {
+		System.out.println("Add [A], Update [U], or Delete [D] a Supplier?");
+		String sel = sc.next();
+		
+		if (sel.equals("A")) {
+			addNewSupplier();
+		} else if (sel.equals("U")) {
+			updateSupplier();
+		} else if (sel.equals("D")) {
+			deleteSupplier();
+		}
+		
+		loggedInStaff();
+	}
+	
+	private static void addNewSupplier() {
+		System.out.print("Supplier name: ");
+		String name = sc.next();
+				
+		int id;
+		if (lastIds[SUPPLIER_IDX] == 0) {
+			id = 500000;
+		} else {
+			id = lastIds[SUPPLIER_IDX] + 1;
+		}
+		lastIds[SUPPLIER_IDX] = id;
+		
+		String q = "INSERT INTO SUPPLIER VALUES (" + id +", '" + name + "')";
+		executeQuery(q);
+		
+		loggedInStaff();
+	}
+	
+	private static void updateSupplier() {
+		System.out.println("Which supplier do you want to update? (ID)");
+		printAllSuppliers();
+		
+		int idToUpdate = sc.nextInt();
+		//Name
+		System.out.print("Update name? [Y] or [N]");
+		if (sc.next().equals("Y")) {
+			System.out.print("New name: ");
+			String q = "UPDATE SUPPLIER SET name = '" + sc.next() + "' WHERE id = " + idToUpdate;
+			executeQuery(q);
+		}
+				
+		loggedInStaff();		
+	}
+	
+	private static void deleteSupplier() {
+		System.out.println("Which supplier do you want to update? (ID)");
+		printAllSuppliers();
+		
+		int idToDelete = sc.nextInt();
+		String q = "DELETE FROM SUPPLIER WHERE id = " + idToDelete;
+		executeQuery(q);
+		loggedInStaff();
+	}
+	
+	private static void printAllSuppliers() {
+		String q = "SELECT id, name, FROM SUPPLIER ORDER by id";
+		ResultSet allSuppliers = executeQuery(q);
+		
+		try {
+			while(allSuppliers.next())
+			{
+				int id = allSuppliers.getInt(1);
+				String name = allSuppliers.getString(2);
+				System.out.println(id + ": " + name);
 			}
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
