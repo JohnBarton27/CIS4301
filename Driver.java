@@ -120,6 +120,7 @@ public class Driver
 			results = sqlStatement.executeQuery(query);
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
+			System.out.println("QUERY: " + query);
 			System.out.println("SQLException2: " + e.getMessage());
 			e.printStackTrace();
 		}
@@ -144,24 +145,18 @@ public class Driver
 		lastIds[AVAILABLE_IDX] = setLastId("AVAILABLE");
 		lastIds[AVAILABLECAT_IDX] = setLastId("AVAILABLECAT");
 		lastIds[DISCOUNT_IDX] = setLastId("DISCOUNT");
-		
 		return;
 	}
 	
 	private static int setLastId(String table) {
 		ResultSet idRes = executeQuery("select id from " + table);
 		try {
-			if (!idRes.next() ) {
-				return 0;
-			} else {
-				//Get last used ID
-				int i = 1;
-				int finalId = 0;
-				while (idRes.next()) {
-					finalId = idRes.getInt(i);
-				}
-				return finalId;
+			int id = 0;
+			while(idRes.next())
+			{
+				id = idRes.getInt(1);
 			}
+				return id;
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -611,6 +606,14 @@ public class Driver
 	}
 	
 	private static void addNewProduct() {
+		setIds();
+		String q = "DELETE FROM LOCATION";
+//		executeQuery(q);
+//		q = "DELETE FROM SUPPLYS";
+//		executeQuery(q);
+//		q = "DELETE FROM INSIDE";
+//		executeQuery(q);
+		
 		System.out.print("Product name: ");
 		String name = sc.next();
 		
@@ -651,7 +654,7 @@ public class Driver
 		}
 		lastIds[LOCATION_IDX] = locationId;
 		
-		String q = "INSERT INTO LOCATION VALUES (" + locationId + ", "  + ", " + id + ", " + shelfId + ")";
+		q = "INSERT INTO LOCATION VALUES (" + locationId + ", " + id + ", " + shelfId + ")";
 		executeQuery(q);
 		
 		int supplysId;
@@ -675,14 +678,14 @@ public class Driver
 
 		q = "INSERT INTO INSIDE VALUES (" + inId + ", " + categoryId + ")";
 		executeQuery(q);
-
 		
-		q = "INSERT INTO PRODUCT VALUES (" + id + ", '" + name + "', " + price + ", " + stockQuantity + ", '" + description + "', true, '0', " + inId + ", " + supplysId;
+		q = "INSERT INTO PRODUCT (id, name, price, stock_quantity, description, active, contains_id, contains_order_id, in_id, supplys_id) VALUES (" + id + ", '" + name + "', " + price + ", " + stockQuantity + ", '" + description + "', 'true', 0, 0, " + inId + ", " + supplysId + ")";
 		executeQuery(q);
 		loggedInStaff();
 	}
 	
 	private static void updateProduct() {
+		printAllProducts();
 		
 		loggedInStaff();
 	}
@@ -1010,7 +1013,7 @@ public class Driver
 	}
 	
 	private static void printAllSuppliers() {
-		String q = "SELECT id, name, FROM SUPPLIER ORDER by id";
+		String q = "SELECT id, name FROM SUPPLIER ORDER by id";
 		ResultSet allSuppliers = executeQuery(q);
 		
 		try {
@@ -1019,6 +1022,25 @@ public class Driver
 				int id = allSuppliers.getInt(1);
 				String name = allSuppliers.getString(2);
 				System.out.println(id + ": " + name);
+			}
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return;
+	}
+	
+	private static void printAllLocations() {
+		String q = "SELECT id, product_id, shelf_id FROM LOCATION ORDER by id";
+		ResultSet allSuppliers = executeQuery(q);
+		
+		try {
+			while(allSuppliers.next())
+			{
+				int id = allSuppliers.getInt(1);
+				int productId = allSuppliers.getInt(2);
+				int shelfId = allSuppliers.getInt(3);
+				System.out.println(id + "pro: " + productId + " shelf: " + shelfId);
 			}
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
