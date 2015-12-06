@@ -260,7 +260,7 @@ public class Driver
 				updateUser(false);
 				break;
 			case 2:
-				deleteCust();
+				deleteCurrUser();
 				break;
 			case 3:
 				addProductToOrder();
@@ -269,13 +269,177 @@ public class Driver
 //				checkout();
 //				break;
 			case 5:
-				logoutCustomer();
+				logoutUser();
 				break;
 		}
 	}
 	
 	public static void loggedInStaff() {
-		//TODO
+		System.out.println("Select a number:"
+				+ "\n1 Update account info"
+				+ "\n2 Delete account"
+				+ "\n3 Users"
+				+ "\n4 Products"
+				+ "\n5 Orders"
+				+ "\n6 Categories"
+				+ "\n7 Discounts"
+				+ "\n8 Logout");
+		
+		int op = sc.nextInt();
+		
+		switch (op) {
+			case 1:
+				updateUser(true);
+				break;
+			case 2:
+				deleteCurrUser();
+				break;
+			case 3:
+				modifyUsers();
+				break;
+//			case 4: 
+//				modifyProducts();
+//				break;
+//			case 5:
+//				modifyOrders();
+//				break;
+//			case 6:
+//				modifyCategories();
+//				break;
+//			case 7:
+//				modifyDiscounts();
+			case 8:
+				logoutUser();
+				break;
+		}
+	}
+	
+	public static void modifyUsers() {
+		System.out.println("Add [A], Update [U], or Delete [D] a User?");
+		String sel = sc.next();
+		
+		if (sel.equals("A")) {
+			addNewUser();
+		} else if (sel.equals("U")) {
+			updateUser();
+		} else if (sel.equals("D")) {
+			deleteUser();
+		}
+		
+		loggedInStaff();
+	}
+	
+	private static void addNewUser() {
+		System.out.print("Staff member? [Y] or [N]: ");
+		String staffStr = sc.next();
+		boolean isStaff;
+		if (staffStr.equals("Y")) {
+			isStaff = true;
+		} else {
+			isStaff = false;
+		}
+		
+		System.out.print("Input name: ");
+		String name = sc.next();
+		
+		System.out.print("Input address: ");
+		String address = sc.next();
+		
+		System.out.print("Input email: ");
+		String email = sc.next();
+		
+		System.out.print("Input password: ");
+		String password = sc.next();
+		
+		int id;
+		if (lastIds[SHOP_USER_IDX] == 0) {
+			id = 100000;
+		} else {
+			id = lastIds[SHOP_USER_IDX] + 1;
+		}
+		lastIds[SHOP_USER_IDX] = id;
+		
+		String q = "INSERT INTO SHOP_USER VALUES (" + id +", '" + address +"', '" + name + "', '" + password + "', '" + email + "', '" + isStaff + "')";
+		
+		executeQuery(q);
+		
+		loggedInStaff();
+	}
+	
+	private static void updateUser() {
+		System.out.println("Which user do you want to update? (ID)");
+		printAllUsers();
+		
+		int idToUpdate = sc.nextInt();
+		//Name
+		System.out.print("Update name? [Y] or [N]");
+		if (sc.next().equals("Y")) {
+			System.out.print("New name: ");
+			String q = "UPDATE SHOP_USER SET name = '" + sc.next() + "' WHERE id = " + idToUpdate;
+			executeQuery(q);
+		}
+		
+		//Address
+		System.out.print("Update address? [Y] or [N]");
+		if (sc.next().equals("Y")) {
+			System.out.print("New address: ");
+			String q = "UPDATE SHOP_USER SET address = '" + sc.next() + "' WHERE id = " + idToUpdate;
+			executeQuery(q);
+		}
+		
+		//Email
+		System.out.print("Update email? [Y] or [N]");
+		if (sc.next().equals("Y")) {
+			System.out.print("New email: ");
+			String q = "UPDATE SHOP_USER SET email = '" + sc.next() + "' WHERE id = " + idToUpdate;
+			executeQuery(q);
+		}
+		
+		//Password
+		System.out.print("Update password? [Y] or [N]");
+		if (sc.next().equals("Y")) {
+			System.out.print("New password: ");
+			String q = "UPDATE SHOP_USER SET password = '" + sc.next() + "' WHERE id = " + idToUpdate;
+			executeQuery(q);
+		}
+		
+		loggedInStaff();
+	}
+	
+	private static void printAllUsers() {
+		String q = "SELECT id, name, address, email, is_staff FROM SHOP_USER ORDER by id";
+		ResultSet allUsers = executeQuery(q);
+		
+		try {
+			while(allUsers.next())
+			{
+				int id = allUsers.getInt(1);
+				String name = allUsers.getString(2);
+				String address = allUsers.getString(3);
+				String email = allUsers.getString(4);
+				String isStaff = allUsers.getString(5);
+				if (isStaff.equals("true")) {
+					isStaff = "Staff";
+				} else {
+					isStaff = "Customer";
+				}
+				System.out.println(id + ": " + name + " - " + email + " - " + address + " - " + isStaff);
+			}
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return;
+	}
+	
+	private static void deleteUser() {
+		System.out.println("Which user do you want to delete? (ID)");
+		printAllUsers();
+		
+		int idToDelete = sc.nextInt();
+		String q = "DELETE FROM SHOP_USER WHERE id = " + idToDelete;
+		executeQuery(q);
+		loggedInStaff();
 	}
 	
 	public static void updateUser(boolean isStaff) {
@@ -318,7 +482,7 @@ public class Driver
 		}
 	}
 	
-	public static void deleteCust() {
+	public static void deleteCurrUser() {
 		System.out.print("Are you sure you want to delete your account? [Y] or [N]");
 		String ans = sc.next();
 		
@@ -343,7 +507,7 @@ public class Driver
 		//TODO NEEDS MORE
 	}
 	
-	public static void logoutCustomer() {
+	public static void logoutUser() {
 		loggedInUser = 0;
 		topLevel();
 	}
