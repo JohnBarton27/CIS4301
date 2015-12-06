@@ -274,7 +274,7 @@ public class Driver
 		}
 	}
 	
-	public static void loggedInStaff() {
+	private static void loggedInStaff() {
 		System.out.println("Select a number:"
 				+ "\n1 Update account info"
 				+ "\n2 Delete account"
@@ -283,7 +283,8 @@ public class Driver
 				+ "\n5 Orders"
 				+ "\n6 Categories"
 				+ "\n7 Discounts"
-				+ "\n8 Logout");
+				+ "\n8 More Choices"
+				+ "\n9 Logout");
 		
 		int op = sc.nextInt();
 		
@@ -309,9 +310,34 @@ public class Driver
 //			case 7:
 //				modifyDiscounts();
 			case 8:
+				staffMore();
+				break;
+			case 9:
 				logoutUser();
 				break;
 		}
+	}
+	
+	private static void staffMore() {
+		System.out.println("Select a number:"
+				+ "\n1 Back"
+				+ "\n2 Shelves"
+				+ "\n3 Suppliers");
+		
+		int op = sc.nextInt();
+		
+		switch (op) {
+			case 1:
+				loggedInStaff();
+				break;
+			case 2:
+				modifyShelves();
+//			case 3:
+//				modifySuppliers();
+//				break;
+		}
+		
+		loggedInStaff();
 	}
 	
 	/////////
@@ -552,7 +578,7 @@ public class Driver
 	//PRODUCTS//
 	////////////
 	private static void modifyProducts() {
-		System.out.println("Add [A], Update [U], or Delete [D] a User?");
+		System.out.println("Add [A], Update [U], or Delete [D] a Product?");
 		String sel = sc.next();
 		
 		if (sel.equals("A")) {
@@ -567,15 +593,144 @@ public class Driver
 	}
 	
 	private static void addNewProduct() {
+		System.out.print("Product name: ");
+		String name = sc.next();
 		
+		System.out.print("Product price: ");
+		String price = sc.next();
+		
+		System.out.print("Product description: ");
+		String description = sc.next();
+				
+		loggedInStaff();
 	}
 	
 	private static void updateProduct() {
 		
+		loggedInStaff();
 	}
 	
 	private static void deleteProduct() {
 		
+		loggedInStaff();
+	}
+	
+	private static void printAllProducts() {
+		String q = "SELECT id, name, price, description, active FROM PRODUCT ORDER by id";
+		ResultSet allProducts = executeQuery(q);
+		
+		try {
+			while(allProducts.next())
+			{
+				int id = allProducts.getInt(1);
+				String name = allProducts.getString(2);
+				String price = allProducts.getString(3);
+				String description = allProducts.getString(4);
+				String active = allProducts.getString(5);
+				if (active.equals("true")) {
+					active = "Active";
+				} else {
+					active = "Not Active";
+				}
+				System.out.println(id + ": " + name + " - " + description + " - " + price + " - " + active);
+			}
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return;
+	}
+	
+	///////////
+	//SHELVES//
+	///////////
+	private static void modifyShelves() {
+		System.out.println("Add [A], Update [U], or Delete [D] a Shelf?");
+		String sel = sc.next();
+		
+		if (sel.equals("A")) {
+			addNewShelf();
+		} else if (sel.equals("U")) {
+			updateShelf();
+		} else if (sel.equals("D")) {
+			deleteShelf();
+		}
+		
+		loggedInStaff();
+	}
+	
+	private static void addNewShelf() {
+		System.out.print("Shelf name: ");
+		String name = sc.next();
+		
+		System.out.print("Available Quantity on Shelf: ");
+		int quantity = sc.nextInt();
+		
+		int id;
+		if (lastIds[SHELF_IDX] == 0) {
+			id = 400000;
+		} else {
+			id = lastIds[SHELF_IDX] + 1;
+		}
+		lastIds[SHELF_IDX] = id;
+		
+		String q = "INSERT INTO SHELF (id, name, available_quantity) VALUES (" + id +", '" + name +"', " + quantity + ")";
+		executeQuery(q);
+		
+		loggedInStaff();
+	}
+	
+	private static void updateShelf() {
+		System.out.println("Which shelf do you want to update? (ID)");
+		printAllShelfs();
+		
+		int idToUpdate = sc.nextInt();
+		//Name
+		System.out.print("Update name? [Y] or [N]");
+		if (sc.next().equals("Y")) {
+			System.out.print("New name: ");
+			String q = "UPDATE SHELF SET name = '" + sc.next() + "' WHERE id = " + idToUpdate;
+			executeQuery(q);
+		}
+		
+		//Quantity
+		System.out.print("Update available quantity? [Y] or [N]");
+		if (sc.next().equals("Y")) {
+			System.out.print("New available quanity: ");
+			String q = "UPDATE SHELF SET available_quantity = '" + sc.next() + "' WHERE id = " + idToUpdate;
+			executeQuery(q);
+		}
+		
+		loggedInStaff();		
+	}
+	
+	private static void deleteShelf() {
+		System.out.println("Which shelf do you want to update? (ID)");
+		printAllShelfs();
+		
+		int idToDelete = sc.nextInt();
+		String q = "DELETE FROM SHELF WHERE id = " + idToDelete;
+		executeQuery(q);
+		loggedInStaff();
+	}
+	
+	private static void printAllShelfs() {
+		String q = "SELECT id, name, available_quantity FROM SHELF ORDER by id";
+		ResultSet allShelfs = executeQuery(q);
+		
+		try {
+			while(allShelfs.next())
+			{
+				int id = allShelfs.getInt(1);
+				String name = allShelfs.getString(2);
+				int quantity = allShelfs.getInt(3);
+				System.out.println(id + ": " + name + " - " + quantity);
+			}
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return;
 	}
 	
 }
