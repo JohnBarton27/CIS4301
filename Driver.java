@@ -245,7 +245,7 @@ public class Driver
 				}
 			} else {
 				loggedInUser = custLogAttempt.getInt(1);
-				System.out.println("Logged in as: " + custLogAttempt.getString(3) + ", loggedInCust: " + loggedInUser);
+				System.out.println("Logged in as: " + custLogAttempt.getString(3));
 				if (isStaff) {
 					loggedInStaff();
 				} else {
@@ -607,12 +607,6 @@ public class Driver
 	
 	private static void addNewProduct() {
 		setIds();
-		String q = "DELETE FROM LOCATION";
-//		executeQuery(q);
-//		q = "DELETE FROM SUPPLYS";
-//		executeQuery(q);
-//		q = "DELETE FROM INSIDE";
-//		executeQuery(q);
 		
 		System.out.print("Product name: ");
 		String name = sc.next();
@@ -654,7 +648,7 @@ public class Driver
 		}
 		lastIds[LOCATION_IDX] = locationId;
 		
-		q = "INSERT INTO LOCATION VALUES (" + locationId + ", " + id + ", " + shelfId + ")";
+		String q = "INSERT INTO LOCATION VALUES (" + locationId + ", " + id + ", " + shelfId + ")";
 		executeQuery(q);
 		
 		int supplysId;
@@ -665,7 +659,7 @@ public class Driver
 		}
 		lastIds[SUPPLYS_IDX] = supplysId;
 		
-		q = "INSERT INTO SUPPLYS VALUES (" + supplysId + ", " + supplierId + ")";
+		q = "INSERT INTO SUPPLYS VALUES (" + supplysId + ", " + id + ", " + supplierId + ")";
 		executeQuery(q);
 		
 		int inId;
@@ -676,21 +670,108 @@ public class Driver
 		}
 		lastIds[INSIDE_IDX] = inId;
 
-		q = "INSERT INTO INSIDE VALUES (" + inId + ", " + categoryId + ")";
+		q = "INSERT INTO INSIDE VALUES (" + inId + ", " + id + ", " + categoryId + ")";
 		executeQuery(q);
 		
-		q = "INSERT INTO PRODUCT (id, name, price, stock_quantity, description, active, contains_id, contains_order_id, in_id, supplys_id) VALUES (" + id + ", '" + name + "', " + price + ", " + stockQuantity + ", '" + description + "', 'true', 0, 0, " + inId + ", " + supplysId + ")";
+		q = "INSERT INTO PRODUCT (id, name, price, stock_quantity, description, active) VALUES (" + id + ", '" + name + "', " + price + ", " + stockQuantity + ", '" + description + "', 'true')";
 		executeQuery(q);
 		loggedInStaff();
 	}
 	
 	private static void updateProduct() {
+		System.out.println("Which product do you want to update? (ID)");
 		printAllProducts();
 		
+		int idToUpdate = sc.nextInt();
+		
+		//Name
+		System.out.print("Update product name? [Y] or [N]");
+		if (sc.next().equals("Y")) {
+			System.out.print("New name: ");
+			String q = "UPDATE PRODUCT SET name = '" + sc.next() + "' WHERE id = " + idToUpdate;
+			executeQuery(q);
+		}
+		
+		//Price
+		System.out.print("Update product price? [Y] or [N]");
+		if (sc.next().equals("Y")) {
+			System.out.print("New price: ");
+			String q = "UPDATE PRODUCT SET price= '" + sc.nextInt() + "' WHERE id = " + idToUpdate;
+			executeQuery(q);
+		}
+		
+		//Stock Quantity
+		System.out.print("Update product stock quantity? [Y] or [N]");
+		if (sc.next().equals("Y")) {
+			System.out.print("New price: ");
+			String q = "UPDATE PRODUCT SET stock_quantity= '" + sc.nextInt() + "' WHERE id = " + idToUpdate;
+			executeQuery(q);
+		}
+
+		//Description
+		System.out.print("Update product description? [Y] or [N]");
+		if (sc.next().equals("Y")) {
+			System.out.print("New price: ");
+			String q = "UPDATE PRODUCT SET description= '" + sc.next() + "' WHERE id = " + idToUpdate;
+			executeQuery(q);
+		}
+		
+		//Deactivate
+		System.out.print("Deactivate? [Y] or [N]");
+		if (sc.next().equals("Y")) {
+			String q = "UPDATE PRODUCT SET active= 'false' WHERE id = " + idToUpdate;
+			executeQuery(q);
+		}
+		
+		//Product location
+		System.out.print("Update product location? [Y] or [N]");
+		if (sc.next().equals("Y")) {
+			System.out.print("New product location (ID): ");
+			printAllShelfs();
+			int newShelfId = sc.nextInt();
+			String q = "UPDATE LOCATION SET shelf_id= " + newShelfId + " WHERE product_id = " + idToUpdate;
+			executeQuery(q);
+		}
+		
+		//Product supplier
+		System.out.print("Update product supplier? [Y] or [N]");
+		if (sc.next().equals("Y")) {
+			System.out.print("New product supplier (ID): ");
+			printAllSuppliers();
+			int newSupplierId = sc.nextInt();
+			//TODO
+			String q = "UPDATE SUPPLYS SET supplier_id= " + newSupplierId + " WHERE product_id = " + idToUpdate;
+			executeQuery(q);
+		}
+		
+		//Product category
+		System.out.print("Update product category? [Y] or [N]");
+		if (sc.next().equals("Y")) {
+			System.out.print("New product category (ID): ");
+			printAllCategories();
+			int newCategoryId = sc.nextInt();
+			//TODO
+			String q = "UPDATE INSIDE SET category_id= " + newCategoryId + " WHERE product_id = " + idToUpdate;
+			executeQuery(q);
+		}
 		loggedInStaff();
 	}
 	
 	private static void deleteProduct() {
+		System.out.println("Which product do you want to delete? (ID)");
+		printAllProducts();
+		
+		int idToDelete = sc.nextInt();
+		
+		//Name
+		String q = "DELETE FROM PRODUCT WHERE id = " + idToDelete;
+		executeQuery(q);
+		
+		q = "DELETE FROM SUPPLYS WHERE product_id = " + idToDelete;
+		executeQuery(q);
+		
+		q = "DELETE FROM INSIDE WHERE product_id = " + idToDelete;
+		executeQuery(q);
 		
 		loggedInStaff();
 	}
@@ -1047,7 +1128,5 @@ public class Driver
 			e.printStackTrace();
 		}
 		return;
-	}
-	
+	}	
 }
-
