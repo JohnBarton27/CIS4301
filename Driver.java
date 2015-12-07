@@ -145,18 +145,20 @@ public class Driver
 		lastIds[AVAILABLE_IDX] = setLastId("AVAILABLE");
 		lastIds[AVAILABLECAT_IDX] = setLastId("AVAILABLECAT");
 		lastIds[DISCOUNT_IDX] = setLastId("DISCOUNT");
+		
 		return;
 	}
 	
 	private static int setLastId(String table) {
-		ResultSet idRes = executeQuery("select id from " + table);
+		ResultSet idRes = executeQuery("select id from " + table + " ORDER BY id");
 		try {
 			int id = 0;
 			while(idRes.next())
 			{
 				id = idRes.getInt(1);
 			}
-				return id;
+			System.out.println(table + ": " + id);
+			return id;
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -203,14 +205,30 @@ public class Driver
 		System.out.print("Search by keyword:");
 		String keyword = sc.next();
 		
-		ResultSet allProds = executeQuery("SELECT id, name FROM PRODUCT");
+		ResultSet allProds = executeQuery("SELECT id, name, price FROM PRODUCT ORDER by price");
 		try {
 			while(allProds.next())
 			{
 				int id = allProds.getInt(1);
 				String name = allProds.getString(2);
+				int price = allProds.getInt(3);
 				if(name.contains(keyword)) {
-					System.out.println(id + ": " + name);
+					System.out.println(id + ": " + name + " $" + price);
+				}
+			}
+			System.out.print("Sort by price, high-to-low? [Y] or [N]");
+			
+			if (sc.next().equals("Y")) {
+				allProds = executeQuery("SELECT id, name, price FROM PRODUCT ORDER by price desc");	
+				
+				while(allProds.next())
+				{
+					int id = allProds.getInt(1);
+					String name = allProds.getString(2);
+					int price = allProds.getInt(3);
+					if(name.contains(keyword)) {
+						System.out.println(id + ": " + name + " $" + price);
+					}
 				}
 			}
 		} catch (SQLException e) {
@@ -242,8 +260,6 @@ public class Driver
 		System.out.print("Input password: ");
 		String password = sc.next();
 
-		boolean succ = false;
-		
 		String q = "SELECT * FROM SHOP_USER WHERE (email = '" + email + "' AND password = '" + password + "' AND is_staff = '" + isStaff + "')";
 		
 		ResultSet custLogAttempt = executeQuery(q);
