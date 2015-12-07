@@ -1,6 +1,9 @@
 import java.io.* ;
 import java.sql.* ;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.Date;
 import java.util.regex.Pattern;
 
 /*
@@ -276,7 +279,7 @@ public class Driver
 				deleteCurrUser();
 				break;
 			case 3:
-				addProductToOrder();
+				modifyOrders(false);
 				break;
 //			case 4:
 //				checkout();
@@ -539,14 +542,98 @@ public class Driver
 		}
 	}
 	
-	public static void addProductToOrder() {
-		System.out.println("Which product would you like to add to your order?"
-				+ "\n1 Product1"
-				+ "\n2 Product2"
-				+ "\n3 Product3");
-		int prodSel = sc.nextInt();
+//	public static void addProductToOrder() {
+//		System.out.println("Which product would you like to add to your order?"
+//				+ "\n1 Product1"
+//				+ "\n2 Product2"
+//				+ "\n3 Product3");
+//		int prodSel = sc.nextInt();
+//		
+//		//TODO NEEDS MORE
+//	}
+	
+	private static void modifyOrders(boolean isStaff) {
+		System.out.println("Add [A], Update [U], or Delete [D] an order?");
+		String sel = sc.next();
 		
-		//TODO NEEDS MORE
+		if (sel.equals("A")) {
+			addNewOrder();
+			loggedInCust();
+		} else if (sel.equals("U")) {
+			updateOrder();
+			loggedInCust();
+		}
+		  else if(sel.equals("D")){
+			if(isStaff == false)
+				System.out.println("Only staff may modify orders");
+				else 
+					deleteOrder(); 
+		}
+			
+	}
+	
+	private static void addNewOrder() {
+		
+		boolean paid = false;
+		DateFormat dateFormat = new SimpleDateFormat("MM/dd/yyyy");
+		Date date = new Date();
+		String currDate = dateFormat.format(date);
+		
+		int id;
+		if (lastIds[ORDER1_IDX] == 0) {
+			id = ORDER1_INIT;
+		} else {
+			id = lastIds[ORDER1_IDX] + 1;
+		}
+		lastIds[ORDER1_IDX] = id;
+		
+		String q = "INSERT INTO ORDER1 VALUES (" + id +", " + 0 +", '" + currDate + "', '" + paid + "')";
+		
+		executeQuery(q);
+		
+		loggedInStaff();
+	}
+	
+	private static void updateOrder() {
+		System.out.println("Which order do you want to update? (ID)");
+		printAllOrders();
+		
+		int idToUpdate = sc.nextInt();
+		//TODO Need to link this to products and figure out how to add and delete
+		// Need to be able to add AND delete products
+		loggedInStaff();
+	}
+	
+	private static void deleteOrder() {
+		System.out.println("Which order do you want to delete? (ID)");
+		printAllUsers();
+		
+		int idToDelete = sc.nextInt();
+		String q = "DELETE FROM ORDER1 WHERE id = " + idToDelete;
+		executeQuery(q);
+		loggedInStaff();
+	}
+	
+	
+		//TODO figure out a query to just return the orders of the current user as well as return products in the order
+	private static void printAllOrders() {
+		String q = "SELECT id, total_price, date, paid FROM ORDER1 ORDER by id";
+		ResultSet allOrders = executeQuery(q);
+		
+		try {
+			while(allOrders.next())
+			{
+				int id = allOrders.getInt(1);
+				int price = allOrders.getInt(2);
+				String date = allOrders.getString(3);
+				String paid = allOrders.getString(4);
+				System.out.println(id + ": " + price + " - " + date + " - " + paid);
+			}
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return;
 	}
 	
 	public static void logoutUser() {
