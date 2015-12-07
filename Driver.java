@@ -333,6 +333,7 @@ public class Driver
 				logoutUser();
 				break;
 		}
+
 		loggedInCust();
 	}
 	
@@ -341,15 +342,18 @@ public class Driver
 		printUserOrders();
 		int orderId = sc.nextInt();
 		
-		
-		System.out.print("Enter product ID: ");
+		System.out.println("Enter product ID: ");
+		printAllProducts();
 		int prodId = sc.nextInt();
 		System.out.println("Quantity of product: ");
 		int quantity = sc.nextInt();
 		
-		String q = "SELECT id FROM PRODUCT WHERE id = " + prodId;
+		String q = "SELECT id, price FROM PRODUCT WHERE id = " + prodId;
 		ResultSet thisProd = executeQuery(q);
 		int thisProdId = 0;
+		int thisProdPrice = 0;
+		int additPrice = 0;
+
 		int id;
 		if (lastIds[CONTAINS_IDX] == 0) {
 			id = CONTAINS_INIT;
@@ -361,10 +365,50 @@ public class Driver
 		try {
 			thisProd.next();
 			thisProdId = thisProd.getInt(1);
-			q = "INSERT INTO CONTAINS VALUES (" + id +", " + quantity +", " + thisProdId + ", " + orderId + ")";
+			thisProdPrice = thisProd.getInt(2);
+			additPrice = thisProdPrice * quantity;
+			
+			q = "SELECT shelf_id FROM LOCATION WHERE product_id = " + thisProdId;
+			System.out.println("Q1: " + q);
+			ResultSet shelfIdSet = executeQuery(q);
+			shelfIdSet.next();			
+			int shelfId = shelfIdSet.getInt(1);
+			
+			q = "SELECT available_quantity FROM SHELF WHERE id = " + shelfId;
+			System.out.println("Q2: " + q);
+			ResultSet availQuanSet = executeQuery(q);
+			availQuanSet.next();
+			int availQuan = availQuanSet.getInt(1);
+			
+			if (availQuan >= quantity) {
+				availQuan -= quantity;
+				
+				q = "UPDATE SHELF SET available_quantity = " + availQuan + " WHERE id = " + shelfId;
+				executeQuery(q);
+				
+				q = "INSERT INTO CONTAINS VALUES (" + id +", " + quantity +", " + thisProdId + ", " + orderId + ")";
+				executeQuery(q);
+				
+				q = "SELECT total_price FROM ORDER1 WHERE id = " + orderId;
+				ResultSet preTotalCost = executeQuery(q);
+				
+				preTotalCost.next();
+				int preTotCost = preTotalCost.getInt(1);
+				
+				int totalCost = preTotCost + additPrice;
+				
+				q = "UPDATE ORDER1 SET total_price = " + totalCost + " WHERE id = " + orderId;
+				executeQuery(q);
+				
+			} else {
+				System.out.println("Cannot order that many! Not enough in stock!");
+			}
+			return;
+			
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
+		
 		return;
 	}
 	
@@ -375,10 +419,12 @@ public class Driver
 		try {
 			while (usersOrderIds.next()) {
 				orderId = usersOrderIds.getInt(1);
-				String q2 = "SELECT id, date_placed FROM ORDER1 WHERE id = " + orderId;
+
+				String q2 = "SELECT id, date_placed, total_price FROM ORDER1 WHERE id = " + orderId;
 				ResultSet fullOrders = executeQuery2(q2);
 				fullOrders.next();
-				System.out.println("ID: " + fullOrders.getInt(1) + " Date: " + fullOrders.getString(2));
+				System.out.println(fullOrders.getInt(1) + " Date: " + fullOrders.getString(2) + " Cost: " + fullOrders.getInt(3));
+
 			}
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
