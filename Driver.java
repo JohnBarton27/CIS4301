@@ -1,9 +1,6 @@
 import java.io.* ;
 import java.sql.* ;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.*;
-import java.util.Date;
 import java.util.regex.Pattern;
 
 /*
@@ -147,18 +144,20 @@ public class Driver
 		lastIds[AVAILABLE_IDX] = setLastId("AVAILABLE");
 		lastIds[AVAILABLECAT_IDX] = setLastId("AVAILABLECAT");
 		lastIds[DISCOUNT_IDX] = setLastId("DISCOUNT");
+		
 		return;
 	}
 	
 	private static int setLastId(String table) {
-		ResultSet idRes = executeQuery("select id from " + table);
+		ResultSet idRes = executeQuery("select id from " + table + " ORDER BY id");
 		try {
 			int id = 0;
 			while(idRes.next())
 			{
 				id = idRes.getInt(1);
 			}
-				return id;
+			System.out.println(table + ": " + id);
+			return id;
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
@@ -203,7 +202,37 @@ public class Driver
 	public static void search() {
 		System.out.print("Search by keyword:");
 		String keyword = sc.next();
-		//TODO insert query
+		
+		ResultSet allProds = executeQuery("SELECT id, name, price FROM PRODUCT ORDER by price");
+		try {
+			while(allProds.next())
+			{
+				int id = allProds.getInt(1);
+				String name = allProds.getString(2);
+				int price = allProds.getInt(3);
+				if(name.contains(keyword)) {
+					System.out.println(id + ": " + name + " $" + price);
+				}
+			}
+			System.out.print("Sort by price, high-to-low? [Y] or [N]");
+			
+			if (sc.next().equals("Y")) {
+				allProds = executeQuery("SELECT id, name, price FROM PRODUCT ORDER by price desc");	
+				
+				while(allProds.next())
+				{
+					int id = allProds.getInt(1);
+					String name = allProds.getString(2);
+					int price = allProds.getInt(3);
+					if(name.contains(keyword)) {
+						System.out.println(id + ": " + name + " $" + price);
+					}
+				}
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		
 		topLevel();
 	}
 	
@@ -229,8 +258,6 @@ public class Driver
 		System.out.print("Input password: ");
 		String password = sc.next();
 
-		boolean succ = false;
-		
 		String q = "SELECT * FROM SHOP_USER WHERE (email = '" + email + "' AND password = '" + password + "' AND is_staff = '" + isStaff + "')";
 		
 		ResultSet custLogAttempt = executeQuery(q);
@@ -276,7 +303,7 @@ public class Driver
 				deleteCurrUser();
 				break;
 			case 3:
-				modifyOrders(false);
+				addProductToOrder();
 				break;
 //			case 4:
 //				checkout();
@@ -320,8 +347,9 @@ public class Driver
 			case 6:
 				modifyCategories();
 				break;
-//			case 7:
-//				modifyDiscounts();
+			case 7:
+				modifyDiscounts();
+				break;
 			case 8:
 				staffMore();
 				break;
@@ -357,10 +385,12 @@ public class Driver
 	//USERS//
 	/////////
 	private static void modifyUsers() {
-		System.out.println("Add [A], Update [U], or Delete [D] a User?");
+		System.out.println("List[L], Add [A], Update [U], or Delete [D] a User?");
 		String sel = sc.next();
 		
-		if (sel.equals("A")) {
+		if (sel.equals("L")) {
+			printAllUsers();
+		} else if (sel.equals("A")) {
 			addNewUser();
 		} else if (sel.equals("U")) {
 			updateUser();
@@ -672,6 +702,7 @@ public class Driver
 			}
 		}
 		return;
+
 	}
 	
 	public static void logoutUser() {
@@ -716,10 +747,12 @@ public class Driver
 	//PRODUCTS//
 	////////////
 	private static void modifyProducts() {
-		System.out.println("Add [A], Update [U], or Delete [D] a Product?");
+		System.out.println("List[L], Add [A], Update [U], or Delete [D] a Product?");
 		String sel = sc.next();
 		
-		if (sel.equals("A")) {
+		if (sel.equals("L")) {
+			printAllProducts();
+		} else if (sel.equals("A")) {
 			addNewProduct();
 		} else if (sel.equals("U")) {
 			updateProduct();
@@ -930,10 +963,12 @@ public class Driver
 	//CATEGORIES//
 	//////////////
 	private static void modifyCategories() {
-		System.out.println("Add [A], Update [U], or Delete [D] a Category?");
+		System.out.println("List [L], Add [A], Update [U], or Delete [D] a Category?");
 		String sel = sc.next();
 		
-		if (sel.equals("A")) {
+		if (sel.equals("L")) {
+			printAllCategories();
+		} else if (sel.equals("A")) {
 			addNewCategory();
 		} else if (sel.equals("U")) {
 			updateCategory();
@@ -1066,10 +1101,12 @@ public class Driver
 	//SHELVES//
 	///////////
 	private static void modifyShelves() {
-		System.out.println("Add [A], Update [U], or Delete [D] a Shelf?");
+		System.out.println("List[L], Add [A], Update [U], or Delete [D] a Shelf?");
 		String sel = sc.next();
 		
-		if (sel.equals("A")) {
+		if (sel.equals("L")) {
+			printAllShelfs();
+		} else if (sel.equals("A")) {
 			addNewShelf();
 		} else if (sel.equals("U")) {
 			updateShelf();
@@ -1154,13 +1191,146 @@ public class Driver
 	}
 	
 	/////////////
+	//DISCOUNTS//
+	/////////////
+	private static void modifyDiscounts() {
+		System.out.println("List [L], Add [A], Update [U], or Delete [D] a Discount?");
+		String sel = sc.next();
+		
+		if (sel.equals("L")) {
+			printAllDiscounts();
+		} else if (sel.equals("A")) {
+			addNewDiscount();
+		} else if (sel.equals("U")) {
+			updateDiscount();
+		} else if (sel.equals("D")) {
+			deleteDiscount();
+		}
+		
+		loggedInStaff();
+	}
+		
+	private static void addNewDiscount() {
+		System.out.print("Discount name: ");
+		String name = sc.next();
+		
+		int id;
+		if (lastIds[DISCOUNT_IDX] == 0) {
+			id = DISCOUNT_INIT;
+		} else {
+			id = lastIds[DISCOUNT_IDX] + 1;
+		}
+		lastIds[DISCOUNT_IDX] = id;
+		
+		String q;
+		
+		System.out.print("Discount for Product or Category? [P] or [C]");
+		String type = sc.next();
+		if (type.equals("P")) {
+			int availId;
+			if (lastIds[AVAILABLE_IDX] == 0) {
+				availId = AVAILABLE_INIT;
+			} else {
+				availId = lastIds[AVAILABLE_IDX] + 1;
+			}
+			lastIds[AVAILABLE_IDX] = availId;
+			
+			System.out.println("Which Product? (ID)");
+			printAllProducts();
+			int productId = sc.nextInt();
+			
+			q = "INSERT INTO AVAILABLE VALUES (" + availId + ", " + productId + ", " + id + ")";
+			executeQuery(q);
+		} else {
+			int availCatId;
+			if (lastIds[AVAILABLECAT_IDX] == 0) {
+				availCatId = AVAILABLECAT_INIT;
+			} else {
+				availCatId = lastIds[AVAILABLECAT_IDX] + 1;
+			}
+			lastIds[AVAILABLECAT_IDX] = availCatId;
+			
+			System.out.println("Which Category? (ID)");
+			printAllCategories();
+			int catId = sc.nextInt();
+			
+			q = "INSERT INTO AVAILABLE VALUES (" + availCatId + ", " + id + ", " + catId + ")";
+			executeQuery(q);
+		}
+		
+		System.out.print("Discount amount: ");
+		int val = sc.nextInt();
+		
+		q = "INSERT INTO DISCOUNT VALUES (" + id +", '" + name + "', " + val + ")";
+		executeQuery(q);
+		
+		loggedInStaff();
+	}
+	
+	private static void updateDiscount() {
+		System.out.println("Which discount do you want to update? (ID)");
+		printAllDiscounts();
+		
+		int idToUpdate = sc.nextInt();
+		
+		//Name
+		System.out.print("Update name? [Y] or [N]");
+		if (sc.next().equals("Y")) {
+			System.out.print("New name: ");
+			String q = "UPDATE DISCOUNT SET name = '" + sc.next() + "' WHERE id = " + idToUpdate;
+			executeQuery(q);
+		}
+		
+		//Value
+		System.out.print("Update value? [Y] or [N]");
+		if (sc.next().equals("Y")) {
+			System.out.print("New value: ");
+			String q = "UPDATE DISCOUNT SET value = " + sc.next() + " WHERE id = " + idToUpdate;
+			executeQuery(q);
+		}
+				
+		loggedInStaff();		
+	}
+	
+	private static void deleteDiscount() {
+		System.out.println("Which discount do you want to update? (ID)");
+		printAllDiscounts();
+		
+		int idToDelete = sc.nextInt();
+		String q = "DELETE FROM DISCOUNT WHERE id = " + idToDelete;
+		executeQuery(q);
+		loggedInStaff();
+	}
+	
+	private static void printAllDiscounts() {
+		String q = "SELECT id, name, value FROM DISCOUNT ORDER by id";
+		ResultSet allDiscounts = executeQuery(q);
+		
+		try {
+			while(allDiscounts.next())
+			{
+				int id = allDiscounts.getInt(1);
+				String name = allDiscounts.getString(2);
+				int value = allDiscounts.getInt(3);
+				System.out.println(id + ": " + name + " - " + value);
+			}
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return;
+	}
+	
+	/////////////
 	//SUPPLIERS//
 	/////////////
 	private static void modifySuppliers() {
-		System.out.println("Add [A], Update [U], or Delete [D] a Supplier?");
+		System.out.println("List [L], Add [A], Update [U], or Delete [D] a Supplier?");
 		String sel = sc.next();
 		
-		if (sel.equals("A")) {
+		if (sel.equals("L")) {
+			printAllSuppliers();
+		} else if (sel.equals("A")) {
 			addNewSupplier();
 		} else if (sel.equals("U")) {
 			updateSupplier();
