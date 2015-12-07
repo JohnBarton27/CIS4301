@@ -122,7 +122,6 @@ public class Driver
 		try {
 			results = sqlStatement.executeQuery(query);
 		} catch (SQLException e) {
-			// TODO Auto-generated catch block
 			System.out.println("QUERY: " + query);
 			System.out.println("SQLException2: " + e.getMessage());
 			e.printStackTrace();
@@ -161,7 +160,6 @@ public class Driver
 			}
 				return id;
 		} catch (SQLException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		return 0;
@@ -256,7 +254,6 @@ public class Driver
 				}
 			}
 		} catch (SQLException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
@@ -317,9 +314,9 @@ public class Driver
 			case 4: 
 				modifyProducts();
 				break;
-//			case 5:
-//				modifyOrders();
-//				break;
+			case 5:
+				modifyOrders(true);
+				break;
 			case 6:
 				modifyCategories();
 				break;
@@ -471,7 +468,6 @@ public class Driver
 				System.out.println(id + ": " + name + " - " + email + " - " + address + " - " + isStaff);
 			}
 		} catch (SQLException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		return;
@@ -558,17 +554,21 @@ public class Driver
 		
 		if (sel.equals("A")) {
 			addNewOrder();
-			loggedInCust();
 		} else if (sel.equals("U")) {
-			updateOrder();
-			loggedInCust();
+			updateOrder(isStaff);
 		}
 		  else if(sel.equals("D")){
 			if(isStaff == false)
 				System.out.println("Only staff may modify orders");
 				else 
 					deleteOrder(); 
+					
 		}
+		if(isStaff == true){
+			loggedInStaff();
+		}
+		else
+			loggedInCust();
 			
 	}
 	
@@ -591,17 +591,31 @@ public class Driver
 		
 		executeQuery(q);
 		
-		loggedInStaff();
+		int ordersId;
+		if (lastIds[ORDERS_IDX] == 0) {
+			ordersId = ORDERS_INIT;
+		} else {
+			ordersId = lastIds[ORDERS_IDX] + 1;
+		}
+		lastIds[ORDERS_IDX] = ordersId;
+		
+		
+		String r = "INSERT INTO ORDERS VALUES (" + ordersId + ", " + loggedInUser + ", " + id + ")";
+		System.out.println(r);
+		executeQuery(r);
+		
+		return;
 	}
 	
-	private static void updateOrder() {
+	private static void updateOrder(boolean isStaff) {
 		System.out.println("Which order do you want to update? (ID)");
-		printAllOrders();
+		printAllOrders(isStaff);
 		
 		int idToUpdate = sc.nextInt();
+		
 		//TODO Need to link this to products and figure out how to add and delete
 		// Need to be able to add AND delete products
-		loggedInStaff();
+		return;
 	}
 	
 	private static void deleteOrder() {
@@ -611,18 +625,20 @@ public class Driver
 		int idToDelete = sc.nextInt();
 		String q = "DELETE FROM ORDER1 WHERE id = " + idToDelete;
 		executeQuery(q);
-		loggedInStaff();
+		return;
 	}
 	
 	
 		//TODO figure out a query to just return the orders of the current user as well as return products in the order
-	private static void printAllOrders() {
-		String q = "SELECT id, total_price, date, paid FROM ORDER1 ORDER by id";
+	private static void printAllOrders(boolean isStaff) {
+		if(isStaff == true){
+		String q = "SELECT id, total_price, date_placed, paid FROM ORDER1 ORDER by id";
 		ResultSet allOrders = executeQuery(q);
 		
 		try {
 			while(allOrders.next())
 			{
+				
 				int id = allOrders.getInt(1);
 				int price = allOrders.getInt(2);
 				String date = allOrders.getString(3);
@@ -630,8 +646,30 @@ public class Driver
 				System.out.println(id + ": " + price + " - " + date + " - " + paid);
 			}
 		} catch (SQLException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
+		}
+		}
+		else{
+			String r = "SELECT order1_id FROM ORDERS WHERE user_id = " + loggedInUser + " ORDER BY id";
+			ResultSet allOrdersCheck = executeQuery(r);
+			try {
+				while(allOrdersCheck.next())
+				{
+					
+					int id = allOrdersCheck.getInt(1);
+					r = "SELECT id, total_price, date_placed, paid FROM ORDER1 WHERE id = " + id + " ORDER by id";
+					ResultSet singleOrders = executeQuery(r);
+					while(singleOrders.next()){
+						int singId = singleOrders.getInt(1);
+						int price = singleOrders.getInt(2);
+						String date = singleOrders.getString(3);
+						String paid = singleOrders.getString(4);
+						System.out.println(singId + ": " + price + " - " + date + " - " + paid);
+					}
+				}
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
 		}
 		return;
 	}
@@ -883,7 +921,6 @@ public class Driver
 				System.out.println(id + ": " + name + " - " + description + " - " + price + " - " + active);
 			}
 		} catch (SQLException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		return;
@@ -1020,7 +1057,6 @@ public class Driver
 				System.out.println(id + ": " + name + " - " + description);
 			}
 		} catch (SQLException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		return;
@@ -1112,7 +1148,6 @@ public class Driver
 				System.out.println(id + ": " + name + " - " + quantity);
 			}
 		} catch (SQLException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		return;
@@ -1192,7 +1227,6 @@ public class Driver
 				System.out.println(id + ": " + name);
 			}
 		} catch (SQLException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		return;
@@ -1211,7 +1245,6 @@ public class Driver
 				System.out.println(id + "pro: " + productId + " shelf: " + shelfId);
 			}
 		} catch (SQLException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		return;
