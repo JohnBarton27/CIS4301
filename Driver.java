@@ -1,6 +1,9 @@
 import java.io.* ;
 import java.sql.* ;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.Date;
 import java.util.regex.Pattern;
 
 /*
@@ -276,7 +279,7 @@ public class Driver
 				deleteCurrUser();
 				break;
 			case 3:
-				addProductToOrder();
+				modifyOrders(false);
 				break;
 //			case 4:
 //				checkout();
@@ -1134,4 +1137,3 @@ public class Driver
 	}
 	
 }
-
