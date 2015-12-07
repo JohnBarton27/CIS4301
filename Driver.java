@@ -1,6 +1,9 @@
 import java.io.* ;
 import java.sql.* ;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.Date;
 import java.util.regex.Pattern;
 
 /*
@@ -32,6 +35,10 @@ public class Driver
 	static Connection sqlcon  = null;
     static Statement sqlStatement  = null;
     static ResultSet myResultSet  = null;
+    
+    static Connection sqlcon2  = null;
+    static Statement sqlStatement2  = null;
+    static ResultSet myResultSet2  = null;
     
     //Indexes
     final static int SHOP_USER_IDX    = 0;
@@ -78,9 +85,11 @@ public class Driver
 		
 			  // Connect to the database
 			  sqlcon= DriverManager.getConnection ("jdbc:oracle:thin:hr/hr@oracle.cise.ufl.edu:1521:orcl", "kmarin", "Tuxy3530");
+			  sqlcon2= DriverManager.getConnection ("jdbc:oracle:thin:hr/hr@oracle.cise.ufl.edu:1521:orcl", "kmarin", "Tuxy3530");
 		
 			  // Create a Statement
 			  sqlStatement = sqlcon.createStatement();
+			  sqlStatement2 = sqlcon2.createStatement();
 			  
 			  // call sqlStatement.executeQuery ()
 			  //String q = "SELECT p.name, s.name FROM Product p, Shelf s, Order o, Contains c WHERE (p.id == c.product_id) AND (o.id == c.order_id) AND (s.id == p.shelf_id)";
@@ -126,6 +135,18 @@ public class Driver
 		return results;
 	}
 	
+	public static ResultSet executeQuery2(String query) {
+		ResultSet results = null;
+		try {
+			results = sqlStatement2.executeQuery(query);
+		} catch (SQLException e) {
+			System.out.println("QUERY: " + query);
+			System.out.println("SQLException2: " + e.getMessage());
+			e.printStackTrace();
+		}
+		return results;
+	}
+	
 	public static void setIds() {
 		
 		// Set last used ID of all tables 
@@ -156,7 +177,7 @@ public class Driver
 			{
 				id = idRes.getInt(1);
 			}
-			System.out.println(table + ": " + id);
+			//System.out.println(table + ": " + id);
 			return id;
 		} catch (SQLException e) {
 			e.printStackTrace();
@@ -311,6 +332,55 @@ public class Driver
 			case 5:
 				logoutUser();
 				break;
+		}
+	}
+	
+	private static void addProductToOrder() {
+		System.out.println("Which order?");
+		printUserOrders();
+		int orderId = sc.nextInt();
+		
+		
+		System.out.print("Enter product ID: ");
+		int prodId = sc.nextInt();
+		System.out.println("Quantity of product: ");
+		int quantity = sc.nextInt();
+		
+		String q = "SELECT id FROM PRODUCT WHERE id = " + prodId;
+		ResultSet thisProd = executeQuery(q);
+		int thisProdId = 0;
+		int id;
+		if (lastIds[CONTAINS_IDX] == 0) {
+			id = CONTAINS_INIT;
+		} else {
+			id = lastIds[CONTAINS_IDX] + 1;
+		}
+		lastIds[CONTAINS_IDX] = id;
+		
+		try {
+			thisProd.next();
+			thisProdId = thisProd.getInt(1);
+			q = "INSERT INTO CONTAINS VALUES (" + id +", " + quantity +", " + thisProdId + ", " + orderId + ")";
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	private static void printUserOrders() {
+		String q = "SELECT order1_id FROM ORDERS WHERE user_id = " + loggedInUser;
+		ResultSet usersOrderIds = executeQuery(q);
+		int orderId = 0;
+		try {
+			while (usersOrderIds.next()) {
+				orderId = usersOrderIds.getInt(1);
+				String q2 = "SELECT id, date_placed FROM ORDER1 WHERE id = " + orderId;
+				ResultSet fullOrders = executeQuery2(q2);
+				fullOrders.next();
+				System.out.println("ID: " + fullOrders.getInt(1) + " Date: " + fullOrders.getString(2));
+			}
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
 	}
 	
@@ -858,14 +928,63 @@ public class Driver
 			executeQuery(q);
 		}
 		
-		//Stock Quantity
-		System.out.print("Update product stock quantity? [Y] or [N]");
+		//More stock
+		System.out.print("More product in stock? [Y] or [N]");
 		if (sc.next().equals("Y")) {
-			System.out.print("New price: ");
-			String q = "UPDATE PRODUCT SET stock_quantity= '" + sc.nextInt() + "' WHERE id = " + idToUpdate;
+			System.out.print("How much? ");
+			String q = "SELECT stock_quantity FROM PRODUCT WHERE id = " + idToUpdate;
+			ResultSet existingProduct = executeQuery(q);
+			int existingAmt = 0;
+			try {
+				while (existingProduct.next()) {
+					existingAmt = existingProduct.getInt(1);
+				}
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+			existingAmt += sc.nextInt();
+			q = "UPDATE PRODUCT SET stock_quantity= '" + existingAmt + "' WHERE id = " + idToUpdate;
 			executeQuery(q);
 		}
 
+		//Less stock, more shelf
+		System.out.print("Move product to shelf? [Y] or [N]");
+		if (sc.next().equals("Y")) {
+			System.out.print("How much? ");
+			String q = "SELECT stock_quantity FROM PRODUCT WHERE id = " + idToUpdate;
+			ResultSet existingProduct = executeQuery(q);
+			int existingAmt = 0;
+			try {
+				while (existingProduct.next()) {
+					existingAmt = existingProduct.getInt(1);
+				}
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+			int amtMoved = sc.nextInt();
+			existingAmt -= amtMoved;
+			q = "UPDATE PRODUCT SET stock_quantity = " + existingAmt + " WHERE id = " + idToUpdate;
+			executeQuery(q);
+			
+			q = "SELECT shelf_id FROM LOCATION WHERE product_id = " + idToUpdate;
+			ResultSet thisShelf = executeQuery(q);
+			int currAmtOnShelf = 0;
+			int thisShelfId = 0;
+			try {
+				thisShelf.next();
+				thisShelfId = thisShelf.getInt(1);
+				q = "SELECT available_quantity FROM SHELF WHERE id = " + thisShelfId;
+				ResultSet thisAmount = executeQuery(q);
+				thisAmount.next();
+				currAmtOnShelf = thisAmount.getInt(1);
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+			currAmtOnShelf += amtMoved;
+			q = "UPDATE SHELF SET available_quantity = " + currAmtOnShelf + " WHERE id = " + thisShelfId;
+			executeQuery(q);
+		}
+		
 		//Description
 		System.out.print("Update product description? [Y] or [N]");
 		if (sc.next().equals("Y")) {
@@ -935,7 +1054,7 @@ public class Driver
 	}
 	
 	private static void printAllProducts() {
-		String q = "SELECT id, name, price, description, active FROM PRODUCT ORDER by id";
+		String q = "SELECT id, name, price, description, stock_quantity, active FROM PRODUCT ORDER by id";
 		ResultSet allProducts = executeQuery(q);
 		
 		try {
@@ -945,13 +1064,14 @@ public class Driver
 				String name = allProducts.getString(2);
 				String price = allProducts.getString(3);
 				String description = allProducts.getString(4);
-				String active = allProducts.getString(5);
+				int stock_quantity = allProducts.getInt(5);
+				String active = allProducts.getString(6);
 				if (active.equals("true")) {
 					active = "Active";
 				} else {
 					active = "Not Active";
 				}
-				System.out.println(id + ": " + name + " - " + description + " - " + price + " - " + active);
+				System.out.println(id + ": " + name + " - " + description + " - " + price + " - " + active + " [" + stock_quantity + "]");
 			}
 		} catch (SQLException e) {
 			e.printStackTrace();
